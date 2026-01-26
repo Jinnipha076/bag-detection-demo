@@ -1,1 +1,162 @@
 index.html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ระบบตรวจจับคนสะพายกระเป๋าและระบุสี</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+}
+nav {
+    background: #1e293b;
+    padding: 10px;
+}
+nav button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+nav button:hover {
+    background: #2563eb;
+}
+section {
+    display: none;
+    padding: 20px;
+}
+section.active {
+    display: block;
+}
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.count {
+    font-size: 32px;
+    color: #16a34a;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+table, th, td {
+    border: 1px solid #ddd;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <button onclick="showPage('home')">🏠 หน้าแรก</button>
+    <button onclick="showPage('detect')">🎥 ระบบตรวจสอบ</button>
+    <button onclick="showPage('stats')">📊 สถิติ</button>
+    <button onclick="showPage('data')">📁 ข้อมูล</button>
+    <button onclick="showPage('about')">👩‍🎓 ผู้จัดทำ</button>
+</nav>
+
+<!-- หน้าแรก -->
+<section id="home" class="active">
+    <div class="card">
+        <h2>ระบบตรวจจับคนสะพายกระเป๋าและระบุสี</h2>
+        <p>
+            ระบบนี้เป็นระบบปัญญาประดิษฐ์ (AI) ที่ใช้เทคโนโลยี Computer Vision
+            เพื่อตรวจจับบุคคลที่สะพายกระเป๋า และจำแนกสีของกระเป๋า
+            โดยอาศัยโมเดล YOLO ในการตรวจจับวัตถุจากภาพหรือวิดีโอ
+        </p>
+    </div>
+</section>
+
+<!-- ระบบตรวจสอบ -->
+<section id="detect">
+    <div class="card">
+        <h2>🎥 ระบบตรวจสอบ</h2>
+        <p>ตัวอย่างการตรวจจับ (จำลอง)</p>
+        <img src="https://i.imgur.com/9QO4ZbG.png" width="100%">
+        <p class="count">ตรวจจับได้ทั้งหมด: 12 คน</p>
+    </div>
+</section>
+
+<!-- สถิติ -->
+<section id="stats">
+    <div class="card">
+        <h2>📊 สถิติการตรวจจับ</h2>
+        <canvas id="chart"></canvas>
+    </div>
+</section>
+
+<!-- ข้อมูล -->
+<section id="data">
+    <div class="card">
+        <h2>📁 ข้อมูลการตรวจจับ</h2>
+        <table>
+            <tr>
+                <th>ลำดับ</th>
+                <th>ประเภท</th>
+                <th>สี</th>
+                <th>เวลา</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>คน + กระเป๋า</td>
+                <td>ดำ</td>
+                <td>10:30</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>คน + กระเป๋า</td>
+                <td>แดง</td>
+                <td>10:32</td>
+            </tr>
+        </table>
+    </div>
+</section>
+
+<!-- ผู้จัดทำ -->
+<section id="about">
+    <div class="card">
+        <h2>👩‍🎓 ประวัติผู้จัดทำ</h2>
+        <p>ชื่อ: ........................................</p>
+        <p>สาขา: ........................................</p>
+        <p>สถาบัน: ........................................</p>
+        <p>รายวิชา: ปัญญาประดิษฐ์ / Computer Vision</p>
+    </div>
+</section>
+
+<script>
+function showPage(id) {
+    document.querySelectorAll("section").forEach(sec => {
+        sec.classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+}
+
+new Chart(document.getElementById("chart"), {
+    type: "bar",
+    data: {
+        labels: ["กระเป๋าดำ", "กระเป๋าแดง", "กระเป๋าน้ำเงิน"],
+        datasets: [{
+            label: "จำนวนที่ตรวจจับได้",
+            data: [6, 4, 2]
+        }]
+    }
+});
+</script>
+
+</body>
+</html>
