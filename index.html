@@ -4,60 +4,69 @@
 <meta charset="UTF-8">
 <title>ระบบตรวจจับคนสะพายกระเป๋าและระบุสี</title>
 
+<!-- ฟอนต์ไทย Sarabun -->
+<link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f6f9;
+    font-family: 'Sarabun', sans-serif;
+    background: #ffc0cb; /* ชมพู */
 }
+
 nav {
-    background: #1e293b;
+    background: #ff69b4;
     padding: 10px;
+    text-align: center;
 }
+
 nav button {
     margin: 5px;
     padding: 10px 15px;
     border: none;
-    background: #3b82f6;
-    color: white;
+    background: #ffe4e1;
+    color: red;
+    font-size: 20px;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 8px;
 }
+
 nav button:hover {
-    background: #2563eb;
+    background: #ffb6c1;
 }
+
 section {
     display: none;
     padding: 20px;
 }
+
 section.active {
     display: block;
 }
+
 .card {
     background: white;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 15px;
     margin-bottom: 20px;
 }
-.count {
-    font-size: 32px;
-    color: #16a34a;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-table, th, td {
-    border: 1px solid #ddd;
-}
-th, td {
-    padding: 10px;
-    text-align: center;
-}
+
 .center {
     text-align: center;
+}
+
+.count {
+    font-size: 32px;
+    color: red;
+    font-weight: bold;
+}
+
+video {
+    width: 100%;
+    border-radius: 10px;
+    border: 3px solid pink;
 }
 </style>
 </head>
@@ -75,22 +84,28 @@ th, td {
 <!-- หน้าแรก -->
 <section id="home" class="active">
     <div class="card center">
-        <h1>เข้าใช้งานระบบ</h1>
-        <p>ระบบตรวจจับคนสะพายกระเป๋าและระบุสี</p>
-        <a href="#detect" onclick="showPage('detect')">
-            <img src="https://i.imgur.com/9QO4ZbG.png" width="60%">
-        </a>
-        <p>คลิกที่ภาพเพื่อเข้าสู่ระบบตรวจสอบ</p>
+        <h1>ระบบตรวจจับคนสะพายกระเป๋า</h1>
+        <p>คลิกปุ่มด้านล่างเพื่อเข้าใช้งาน</p>
+        <button onclick="showPage('detect')" style="color:red;font-size:20px;">
+            👉 เข้าใช้งานระบบ
+        </button>
     </div>
 </section>
 
 <!-- ระบบตรวจสอบ -->
 <section id="detect">
     <div class="card">
-        <h2>🎥 ระบบตรวจสอบ</h2>
-        <p>ตัวอย่างการตรวจจับ (จำลอง)</p>
-        <img src="https://i.imgur.com/9QO4ZbG.png" width="100%">
-        <p class="count">ตรวจจับได้ทั้งหมด: 12 คน</p>
+        <h2>🎥 เปิดกล้องตรวจจับ</h2>
+        <video id="camera" autoplay></video>
+        <br><br>
+        <button onclick="startCamera()">📷 เปิดกล้อง</button>
+        <button onclick="simulateDetection()">🔍 ตรวจจับกระเป๋า</button>
+    </div>
+
+    <div class="card">
+        <h3>📦 ผลการตรวจจับ</h3>
+        <p>จำนวนกระเป๋าที่ตรวจพบ: <span id="bagCount" class="count">0</span></p>
+        <p>ประเภทกระเป๋าล่าสุด: <strong id="bagType">-</strong></p>
     </div>
 </section>
 
@@ -106,25 +121,13 @@ th, td {
 <section id="data">
     <div class="card">
         <h2>📁 ข้อมูลการตรวจจับ</h2>
-        <table>
+        <table border="1" width="100%">
             <tr>
                 <th>ลำดับ</th>
-                <th>ประเภท</th>
-                <th>สี</th>
+                <th>ประเภทกระเป๋า</th>
                 <th>เวลา</th>
             </tr>
-            <tr>
-                <td>1</td>
-                <td>คน + กระเป๋า</td>
-                <td>ดำ</td>
-                <td>10:30</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>คน + กระเป๋า</td>
-                <td>แดง</td>
-                <td>10:32</td>
-            </tr>
+            <tbody id="dataTable"></tbody>
         </table>
     </div>
 </section>
@@ -133,34 +136,69 @@ th, td {
 <section id="about">
     <div class="card">
         <h2>👩‍🎓 ประวัติผู้จัดทำ</h2>
-        <p>ชื่อ: ........................................</p>
-        <p>สาขา: ........................................</p>
-        <p>สถาบัน: ........................................</p>
-        <p>รายวิชา: ปัญญาประดิษฐ์ / Computer Vision</p>
+        <p>ชื่อ: ................................</p>
+        <p>สาขา: ................................</p>
+        <p>สถาบัน: ............................</p>
+        <p>รายวิชา: Computer Vision</p>
     </div>
 </section>
 
 <script>
+/* เปลี่ยนหน้า */
 function showPage(id) {
-    document.querySelectorAll("section").forEach(sec => {
-        sec.classList.remove("active");
-    });
+    document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
-const ctx = document.getElementById("chart");
-if (ctx) {
-    new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: ["กระเป๋าดำ", "กระเป๋าแดง", "กระเป๋าน้ำเงิน"],
-            datasets: [{
-                label: "จำนวนที่ตรวจจับได้",
-                data: [6, 4, 2]
-            }]
-        }
-    });
+/* เปิดกล้อง */
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            document.getElementById("camera").srcObject = stream;
+        })
+        .catch(err => alert("ไม่สามารถเปิดกล้องได้"));
 }
+
+/* จำลอง AI ตรวจจับ */
+let count = 0;
+let index = 1;
+
+const bagTypes = [
+    "กระเป๋าเป้สะพายหลัง",
+    "กระเป๋าสะพายข้าง",
+    "กระเป๋าถือ",
+    "กระเป๋าโน้ตบุ๊ก"
+];
+
+function simulateDetection() {
+    const type = bagTypes[Math.floor(Math.random() * bagTypes.length)];
+    count++;
+
+    document.getElementById("bagCount").innerText = count;
+    document.getElementById("bagType").innerText = type;
+
+    const table = document.getElementById("dataTable");
+    const row = table.insertRow();
+    row.innerHTML = `
+        <td>${index++}</td>
+        <td>${type}</td>
+        <td>${new Date().toLocaleTimeString()}</td>
+    `;
+}
+
+/* กราฟ */
+const ctx = document.getElementById("chart");
+new Chart(ctx, {
+    type: "bar",
+    data: {
+        labels: bagTypes,
+        datasets: [{
+            label: "จำนวนที่ตรวจพบ",
+            data: [2, 3, 1, 2],
+            backgroundColor: "pink"
+        }]
+    }
+});
 </script>
 
 </body>
