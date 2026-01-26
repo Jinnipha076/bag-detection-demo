@@ -4,18 +4,20 @@
 <meta charset="UTF-8">
 <title>ระบบตรวจจับกระเป๋าแต่ละประเภทและสามารถแยกสีได้</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
+<!-- ฟอนต์ไทย Sarabun -->
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-    margin: 0;
+* {
     font-family: 'Sarabun', sans-serif;
-    background: #ffc0cb;
+    font-weight: bold;
 }
 
-h1, h2, h3 {
-    font-weight: bold;
+body {
+    margin: 0;
+    background: #ffc0cb;
 }
 
 nav {
@@ -26,47 +28,26 @@ nav {
 
 nav button {
     margin: 5px;
-    padding: 10px 15px;
+    padding: 10px 18px;
     border: none;
     background: #ffe4e1;
     color: red;
     font-size: 20px;
+    border-radius: 10px;
     cursor: pointer;
-    border-radius: 8px;
+}
+
+nav button:hover {
+    background: #ffb6c1;
 }
 
 section {
     display: none;
     padding: 20px;
 }
+
 section.active {
     display: block;
-}
-
-.home-full {
-    min-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.home-image {
-    width: 90%;
-    max-width: 900px;
-    margin: 20px 0;
-}
-.home-image img {
-    width: 100%;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.enter-text {
-    color: red;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
 }
 
 .card {
@@ -76,10 +57,13 @@ section.active {
     margin-bottom: 20px;
 }
 
+.center {
+    text-align: center;
+}
+
 .count {
-    font-size: 32px;
+    font-size: 28px;
     color: red;
-    font-weight: bold;
 }
 
 video {
@@ -88,13 +72,28 @@ video {
     border: 3px solid pink;
 }
 
-/* ป้ายสี */
-.color-badge {
-    padding: 6px 14px;
+/* หน้าแรก */
+.home-full {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+}
+
+.home-image img {
+    max-width: 100%;
+    max-height: 60vh;
     border-radius: 20px;
-    color: white;
-    font-weight: bold;
-    display: inline-block;
+    cursor: pointer;
+}
+
+.enter-text {
+    font-size: 22px;
+    color: red;
+    margin-bottom: 20px;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -115,7 +114,7 @@ video {
         <h1>ระบบตรวจจับกระเป๋าแต่ละประเภทและสามารถแยกสีได้</h1>
 
         <div class="home-image" onclick="showPage('detect')">
-            <img src="https://i.imgur.com/6VZQZ6h.jpg">
+            <img src="bag-cover.jpg" alt="bag cover">
         </div>
 
         <div class="enter-text" onclick="showPage('detect')">
@@ -135,9 +134,9 @@ video {
 
     <div class="card">
         <h3>📦 ผลการตรวจจับ</h3>
-        <p>จำนวนกระเป๋าที่ตรวจพบ: <span id="bagCount" class="count">0</span></p>
-        <p>ประเภทกระเป๋า: <strong id="bagType">-</strong></p>
-        <p>สีของกระเป๋า: <span id="bagColor"></span></p>
+        <p>จำนวนที่ตรวจพบ: <span id="bagCount" class="count">0</span></p>
+        <p>ประเภท: <span id="bagType"></span></p>
+        <p>สี: <span id="bagColor"></span></p>
     </div>
 </section>
 
@@ -156,7 +155,7 @@ video {
         <table border="1" width="100%">
             <tr>
                 <th>ลำดับ</th>
-                <th>ประเภทกระเป๋า</th>
+                <th>ประเภท</th>
                 <th>สี</th>
                 <th>เวลา</th>
             </tr>
@@ -178,51 +177,38 @@ video {
 
 <script>
 function showPage(id) {
-    document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
+/* เปิดกล้อง */
 function startCamera() {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => document.getElementById("camera").srcObject = stream)
         .catch(() => alert("ไม่สามารถเปิดกล้องได้"));
 }
 
+/* จำลอง AI */
 let count = 0;
 let index = 1;
 
-/* ประเภท + สี */
-const bagTypes = [
-    "กระเป๋าเป้สะพายหลัง",
-    "กระเป๋าสะพายข้าง",
-    "กระเป๋าถือ",
-    "กระเป๋าโน้ตบุ๊ก"
-];
-
-const bagColors = {
-    "ดำ": "#000000",
-    "แดง": "#dc2626",
-    "น้ำเงิน": "#2563eb",
-    "น้ำตาล": "#92400e"
-};
+const bagTypes = ["กระเป๋าเป้", "กระเป๋าสะพายข้าง", "กระเป๋าถือ", "กระเป๋าโน้ตบุ๊ก"];
+const bagColors = ["ดำ", "น้ำตาล", "ฟ้า", "แดง", "ขาว","ม่วง","นํ้าเงิน","เขียว","เหลือง","ชมพู","ส้ม"];
 
 function simulateDetection() {
     const type = bagTypes[Math.floor(Math.random() * bagTypes.length)];
-    const colorName = Object.keys(bagColors)[Math.floor(Math.random() * 4)];
-    const colorHex = bagColors[colorName];
+    const color = bagColors[Math.floor(Math.random() * bagColors.length)];
 
     count++;
     document.getElementById("bagCount").innerText = count;
     document.getElementById("bagType").innerText = type;
-
-    document.getElementById("bagColor").innerHTML =
-        `<span class="color-badge" style="background:${colorHex}">${colorName}</span>`;
+    document.getElementById("bagColor").innerText = color;
 
     const row = document.getElementById("dataTable").insertRow();
     row.innerHTML = `
         <td>${index++}</td>
         <td>${type}</td>
-        <td><span class="color-badge" style="background:${colorHex}">${colorName}</span></td>
+        <td>${color}</td>
         <td>${new Date().toLocaleTimeString()}</td>
     `;
 }
@@ -234,8 +220,8 @@ new Chart(document.getElementById("chart"), {
         labels: bagTypes,
         datasets: [{
             label: "จำนวนที่ตรวจพบ",
-            data: [2,3,1,2],
-            backgroundColor: "#f472b6"
+            data: [2, 3, 1, 2],
+            backgroundColor: "pink"
         }]
     }
 });
