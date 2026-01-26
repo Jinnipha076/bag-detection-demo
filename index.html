@@ -157,6 +157,30 @@ new Chart(document.getElementById("chart"), {
     }
 });
 </script>
+    <script>
+function showPage(pageId) {
+  const sections = document.querySelectorAll("section");
+  sections.forEach(sec => sec.style.display = "none");
+
+  document.getElementById(pageId).style.display = "block";
+}
+
+// แสดงหน้าแรกตอนโหลดเว็บ
+showPage('home');
+</script>
 
 </body>
+    <nav>
+  <button onclick="showPage('home')">🏠 หน้าแรก</button>
+  <button onclick="showPage('detect')">🎥 ระบบตรวจสอบ</button>
+  <button onclick="showPage('stats')">📊 สถิติ</button>
+  <button onclick="showPage('data')">📁 ข้อมูล</button>
+  <button onclick="showPage('about')">👩‍🎓 ผู้จัดทำ</button>
+</nav>
 </html>
+<style>
+section {
+  display: none;
+  padding: 20px;
+}
+</style>
