@@ -2,11 +2,9 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ระบบตรวจจับกระเป๋าแต่ละประเภทและสามารถแยกสีได้</title>
+<title>ระบบตรวจจับกระเป๋าและนับจำนวน</title>
 
-<!-- ฟอนต์ไทย Sarabun -->
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -38,10 +36,6 @@ nav button {
     cursor: pointer;
 }
 
-nav button:hover {
-    background: #ffb6c1;
-}
-
 section {
     display: none;
     padding: 20px;
@@ -67,33 +61,6 @@ section.active {
     color: red;
 }
 
-/* หน้าแรก */
-.home-full {
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    text-align: center;
-}
-
-.home-image img {
-    width: 100%;
-    max-width: 900px;
-    max-height: 60vh;
-    object-fit: cover;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.enter-text {
-    font-size: 22px;
-    color: red;
-    margin-bottom: 20px;
-    cursor: pointer;
-}
-
-/* กล้อง + กรอบตรวจจับ */
 .camera-box {
     position: relative;
 }
@@ -104,26 +71,19 @@ video {
     border: 3px solid pink;
 }
 
-/* กรอบสี่เหลี่ยมตรวจจับ */
 .detect-box {
     position: absolute;
     border: 3px solid red;
     width: 160px;
     height: 120px;
-    top: 40px;
-    left: 40px;
+    top: 60px;
+    left: 60px;
     animation: moveBox 2s infinite alternate;
 }
 
 @keyframes moveBox {
-    from {
-        top: 40px;
-        left: 40px;
-    }
-    to {
-        top: 140px;
-        left: 220px;
-    }
+    from { top: 60px; left: 60px; }
+    to { top: 160px; left: 240px; }
 }
 </style>
 </head>
@@ -132,42 +92,31 @@ video {
 
 <nav>
     <button onclick="showPage('home')">🏠 หน้าแรก</button>
-    <button onclick="showPage('detect')">🎥 ระบบตรวจสอบ</button>
+    <button onclick="showPage('detect')">🎥 ตรวจจับ</button>
     <button onclick="showPage('stats')">📊 สถิติ</button>
     <button onclick="showPage('data')">📁 ข้อมูล</button>
-    <button onclick="showPage('about')">👩‍🎓 ผู้จัดทำ</button>
 </nav>
 
-<!-- หน้าแรก -->
 <section id="home" class="active">
-    <div class="home-full">
-        <h1>ระบบตรวจจับกระเป๋าแต่ละประเภทและสามารถแยกสีได้</h1>
-
-        <div class="home-image" onclick="showPage('detect')">
-            <!-- รูปจาก Unsplash ตามที่ผู้ใช้เลือก -->
-            <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa" alt="bag cover">
-        </div>
-
-        <div class="enter-text" onclick="showPage('detect')">
-            👉 เข้าใช้งานระบบ
-        </div>
+    <div class="card center">
+        <h1>ระบบตรวจจับกระเป๋าและนับจำนวนอัตโนมัติ</h1>
+        <p>โครงงานรายวิชา Computer Vision</p>
+        <button onclick="showPage('detect')">👉 เข้าใช้งาน</button>
     </div>
 </section>
 
-<!-- ระบบตรวจสอบ -->
 <section id="detect">
     <div class="card">
-        <h2>🎥 เปิดกล้องตรวจจับ (จำลอง)</h2>
+        <h2>🎥 กล้องตรวจจับ</h2>
 
         <div class="camera-box">
             <video id="camera" autoplay></video>
-            <!-- กรอบตรวจจับวัตถุ -->
             <div class="detect-box"></div>
         </div>
 
         <br>
         <button onclick="startCamera()">📷 เปิดกล้อง</button>
-        <button onclick="simulateDetection()">🔍 ตรวจจับกระเป๋า</button>
+        <button disabled>🟢 เซนเซอร์ทำงานอัตโนมัติ</button>
     </div>
 
     <div class="card">
@@ -178,7 +127,6 @@ video {
     </div>
 </section>
 
-<!-- สถิติ -->
 <section id="stats">
     <div class="card">
         <h2>📊 สถิติการตรวจจับ</h2>
@@ -186,7 +134,6 @@ video {
     </div>
 </section>
 
-<!-- ข้อมูล -->
 <section id="data">
     <div class="card">
         <h2>📁 ข้อมูลการตรวจจับ</h2>
@@ -199,17 +146,6 @@ video {
             </tr>
             <tbody id="dataTable"></tbody>
         </table>
-    </div>
-</section>
-
-<!-- ผู้จัดทำ -->
-<section id="about">
-    <div class="card">
-        <h2>👩‍🎓 ประวัติผู้จัดทำ</h2>
-        <p>ชื่อ: ................................</p>
-        <p>สาขา: ................................</p>
-        <p>สถาบัน: ............................</p>
-        <p>รายวิชา: Computer Vision</p>
     </div>
 </section>
 
@@ -226,14 +162,30 @@ function startCamera() {
         .catch(() => alert("ไม่สามารถเปิดกล้องได้"));
 }
 
-/* จำลอง AI ตรวจจับ */
+/* ตัวแปรระบบ */
 let count = 0;
 let index = 1;
+let detected = false;
 
-const bagTypes = ["กระเป๋าเป้", "กระเป๋าสะพายข้าง", "กระเป๋าถือ", "กระเป๋าโน้ตบุ๊ก"];
+const bagTypes = ["กระเป๋าเป้","กระเป๋าสะพายข้าง","กระเป๋าถือ","กระเป๋าโน้ตบุ๊ก"];
 const bagColors = ["ดำ","แดง","น้ำเงิน","เขียว","ชมพู","เหลือง","ขาว"];
 
-function simulateDetection() {
+/* เซนเซอร์ตรวจจับอัตโนมัติ */
+function sensorDetect() {
+    const hasBag = Math.random() > 0.5;
+
+    if (hasBag && !detected) {
+        detected = true;
+        detectBag();
+    }
+
+    if (!hasBag) {
+        detected = false;
+    }
+}
+
+/* ตรวจจับ + นับ */
+function detectBag() {
     const type = bagTypes[Math.floor(Math.random() * bagTypes.length)];
     const color = bagColors[Math.floor(Math.random() * bagColors.length)];
 
@@ -251,6 +203,9 @@ function simulateDetection() {
     `;
 }
 
+/* เริ่มเซนเซอร์ */
+setInterval(sensorDetect, 2000);
+
 /* กราฟ */
 new Chart(document.getElementById("chart"), {
     type: "bar",
@@ -258,7 +213,7 @@ new Chart(document.getElementById("chart"), {
         labels: bagTypes,
         datasets: [{
             label: "จำนวนที่ตรวจพบ",
-            data: [2, 3, 1, 2],
+            data: [0,0,0,0],
             backgroundColor: "pink"
         }]
     }
