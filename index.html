@@ -71,19 +71,15 @@ video {
     border: 3px solid pink;
 }
 
+/* 🔴 กรอบเซนเซอร์กึ่งกลาง */
 .detect-box {
     position: absolute;
     border: 3px solid red;
     width: 160px;
     height: 120px;
-    top: 60px;
-    left: 60px;
-    animation: moveBox 2s infinite alternate;
-}
-
-@keyframes moveBox {
-    from { top: 60px; left: 60px; }
-    to { top: 160px; left: 240px; }
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 </style>
 </head>
@@ -116,7 +112,7 @@ video {
 
         <br>
         <button onclick="startCamera()">📷 เปิดกล้อง</button>
-        <button disabled>🟢 เซนเซอร์ทำงานอัตโนมัติ</button>
+        <p>สถานะเซนเซอร์: <span id="sensorStatus">⏳ รอวัตถุ</span></p>
     </div>
 
     <div class="card">
@@ -170,17 +166,20 @@ let detected = false;
 const bagTypes = ["กระเป๋าเป้","กระเป๋าสะพายข้าง","กระเป๋าถือ","กระเป๋าโน้ตบุ๊ก"];
 const bagColors = ["ดำ","แดง","น้ำเงิน","เขียว","ชมพู","เหลือง","ขาว"];
 
-/* เซนเซอร์ตรวจจับอัตโนมัติ */
+/* 🔎 เซนเซอร์ตรวจจับเฉพาะกึ่งกลาง */
 function sensorDetect() {
-    const hasBag = Math.random() > 0.5;
+    // จำลองวัตถุผ่านจุดกึ่งกลาง
+    const objectInCenter = Math.random() > 0.7;
 
-    if (hasBag && !detected) {
+    if (objectInCenter && !detected) {
         detected = true;
+        document.getElementById("sensorStatus").innerText = "✅ ตรวจจับที่กึ่งกลาง";
         detectBag();
     }
 
-    if (!hasBag) {
+    if (!objectInCenter) {
         detected = false;
+        document.getElementById("sensorStatus").innerText = "⏳ รอวัตถุ";
     }
 }
 
@@ -203,7 +202,7 @@ function detectBag() {
     `;
 }
 
-/* เริ่มเซนเซอร์ */
+/* เริ่มเซนเซอร์อัตโนมัติ */
 setInterval(sensorDetect, 2000);
 
 /* กราฟ */
