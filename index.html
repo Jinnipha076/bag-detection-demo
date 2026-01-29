@@ -8,79 +8,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-* {
-    font-family: 'Sarabun', sans-serif;
-    font-weight: bold;
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #ffc0cb;
-}
-
-nav {
-    background: #ff69b4;
-    padding: 10px;
-    text-align: center;
-}
-
+* { font-family: 'Sarabun', sans-serif; font-weight: bold; box-sizing: border-box; }
+body { margin:0; background:#ffc0cb; }
+nav { background:#ff69b4; padding:10px; text-align:center; }
 nav button {
-    margin: 5px;
-    padding: 10px 18px;
-    border: none;
-    background: #ffe4e1;
-    color: red;
-    font-size: 20px;
-    border-radius: 10px;
-    cursor: pointer;
+    margin:5px; padding:10px 18px; border:none;
+    background:#ffe4e1; color:red; font-size:20px;
+    border-radius:10px; cursor:pointer;
 }
-
-section {
-    display: none;
-    padding: 20px;
-}
-
-section.active {
-    display: block;
-}
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-}
-
-.center {
-    text-align: center;
-}
-
-.count {
-    font-size: 28px;
-    color: red;
-}
-
-.camera-box {
-    position: relative;
-}
-
-video {
-    width: 100%;
-    border-radius: 10px;
-    border: 3px solid pink;
-}
-
-/* 🔴 กรอบเซนเซอร์กึ่งกลาง */
-.detect-box {
-    position: absolute;
-    border: 3px solid red;
-    width: 160px;
-    height: 120px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+section { display:none; padding:20px; }
+section.active { display:block; }
+.card { background:white; padding:20px; border-radius:15px; margin-bottom:20px; }
+.center { text-align:center; }
+.count { font-size:28px; color:red; }
+video { width:100%; border-radius:10px; border:3px solid pink; }
 </style>
 </head>
 
@@ -104,42 +45,29 @@ video {
 <section id="detect">
     <div class="card">
         <h2>🎥 กล้องตรวจจับ</h2>
-
-        <div class="camera-box">
-            <video id="camera" autoplay></video>
-            <div class="detect-box"></div>
-        </div>
-
-        <br>
+        <video id="camera" autoplay></video><br><br>
         <button onclick="startCamera()">📷 เปิดกล้อง</button>
-        <p>สถานะเซนเซอร์: <span id="sensorStatus">⏳ รอวัตถุ</span></p>
     </div>
 
     <div class="card">
         <h3>📦 ผลการตรวจจับ</h3>
         <p>จำนวนที่ตรวจพบ: <span id="bagCount" class="count">0</span></p>
         <p>ประเภท: <span id="bagType">-</span></p>
-        <p>สี: <span id="bagColor">-</span></p>
     </div>
 </section>
 
 <section id="stats">
     <div class="card">
-        <h2>📊 สถิติการตรวจจับ</h2>
+        <h2>📊 สถิติ</h2>
         <canvas id="chart"></canvas>
     </div>
 </section>
 
 <section id="data">
     <div class="card">
-        <h2>📁 ข้อมูลการตรวจจับ</h2>
+        <h2>📁 ประวัติการตรวจจับ</h2>
         <table border="1" width="100%">
-            <tr>
-                <th>ลำดับ</th>
-                <th>ประเภท</th>
-                <th>สี</th>
-                <th>เวลา</th>
-            </tr>
+            <tr><th>ลำดับ</th><th>ประเภท</th><th>เวลา</th></tr>
             <tbody id="dataTable"></tbody>
         </table>
     </div>
@@ -151,72 +79,51 @@ function showPage(id) {
     document.getElementById(id).classList.add("active");
 }
 
-/* เปิดกล้อง */
 function startCamera() {
     navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => document.getElementById("camera").srcObject = stream)
+        .then(stream => camera.srcObject = stream)
         .catch(() => alert("ไม่สามารถเปิดกล้องได้"));
 }
 
-/* ตัวแปรระบบ */
-let count = 0;
 let index = 1;
-let detected = false;
+let chartData = [0,0,0];
 
-const bagTypes = ["กระเป๋าเป้","กระเป๋าสะพายข้าง","กระเป๋าถือ","กระเป๋าโน้ตบุ๊ก"];
-const bagColors = ["ดำ","แดง","น้ำเงิน","เขียว","ชมพู","เหลือง","ขาว"];
-
-/* 🔎 เซนเซอร์ตรวจจับเฉพาะกึ่งกลาง */
-function sensorDetect() {
-    // จำลองวัตถุผ่านจุดกึ่งกลาง
-    const objectInCenter = Math.random() > 0.7;
-
-    if (objectInCenter && !detected) {
-        detected = true;
-        document.getElementById("sensorStatus").innerText = "✅ ตรวจจับที่กึ่งกลาง";
-        detectBag();
-    }
-
-    if (!objectInCenter) {
-        detected = false;
-        document.getElementById("sensorStatus").innerText = "⏳ รอวัตถุ";
-    }
-}
-
-/* ตรวจจับ + นับ */
-function detectBag() {
-    const type = bagTypes[Math.floor(Math.random() * bagTypes.length)];
-    const color = bagColors[Math.floor(Math.random() * bagColors.length)];
-
-    count++;
-    document.getElementById("bagCount").innerText = count;
-    document.getElementById("bagType").innerText = type;
-    document.getElementById("bagColor").innerText = color;
-
-    const row = document.getElementById("dataTable").insertRow();
-    row.innerHTML = `
-        <td>${index++}</td>
-        <td>${type}</td>
-        <td>${color}</td>
-        <td>${new Date().toLocaleTimeString()}</td>
-    `;
-}
-
-/* เริ่มเซนเซอร์อัตโนมัติ */
-setInterval(sensorDetect, 2000);
-
-/* กราฟ */
-new Chart(document.getElementById("chart"), {
+const chart = new Chart(document.getElementById("chart"), {
     type: "bar",
     data: {
-        labels: bagTypes,
+        labels: ["backpack","handbag","suitcase"],
         datasets: [{
             label: "จำนวนที่ตรวจพบ",
-            data: [0,0,0,0],
+            data: chartData,
             backgroundColor: "pink"
         }]
     }
 });
+
+async function detectFromYOLO() {
+    try {
+        const res = await fetch("http://127.0.0.1:5000/detect");
+        const data = await res.json();
+
+        if (data.found) {
+            document.getElementById("bagCount").innerText = data.count;
+            document.getElementById("bagType").innerText = data.type;
+
+            const row = dataTable.insertRow();
+            row.innerHTML = `<td>${index++}</td><td>${data.type}</td><td>${new Date().toLocaleTimeString()}</td>`;
+
+            const i = chart.data.labels.indexOf(data.type);
+            if (i >= 0) {
+                chart.data.datasets[0].data[i]++;
+                chart.update();
+            }
+        }
+    } catch {
+        console.log("Backend ยังไม่ทำงาน");
+    }
+}
+
+setInterval(detectFromYOLO, 2000);
 </script>
 
 </body>
