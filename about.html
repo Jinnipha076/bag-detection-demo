@@ -1,1 +1,82 @@
-about.html
+from ultralytics import YOLO
+import cv2
+
+# โหลดโมเดล
+model = YOLO("yolo11n.pt")
+
+# เปิดวิดีโอ
+video_path = "/content/vdo_count.mp4"
+cap = cv2.VideoCapture(video_path)
+
+w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+
+# เขียนวิดีโอผลลัพธ์
+out = cv2.VideoWriter(
+    "/content/output.mp4",
+    cv2.VideoWriter_fourcc(*"mp4v"),
+    fps,
+    (w, h)
+)
+
+# ---------- เส้นคั่นแนวนอน ----------
+line_y = h // 2   # กึ่งกลางภาพ
+
+# ตัวแปรนับ
+in_count = 0
+out_count = 0
+track_history = {}
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # track เฉพาะคน (class 0)
+    results = model.track(frame, persist=True, classes=[0])
+
+    if results[0].boxes.id is not None:
+        boxes = results[0].boxes.xyxy.cpu().numpy()
+        ids = results[0].boxes.id.cpu().numpy()
+
+        for box, track_id in zip(boxes, ids):
+            x1, y1, x2, y2 = box
+            cx = int((x1 + x2) / 2)
+            cy = int((y1 + y2) / 2)
+
+            # เช็กการข้ามเส้น
+            if track_id in track_history:
+                prev_y = track_history[track_id]
+
+                # บน -> ล่าง (เข้า)
+                if prev_y < line_y and cy >= line_y:
+                    in_count += 1
+
+                # ล่าง -> บน (ออก)
+                elif prev_y > line_y and cy <= line_y:
+                    out_count += 1
+
+            track_history[track_id] = cy
+
+            # วาดกล่อง + centroid
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0,255,0), 2)
+            cv2.circle(frame, (cx, cy), 4, (0,0,255), -1)
+            cv2.putText(frame, f"ID {int(track_id)}",
+                        (int(x1), int(y1)-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)
+
+    # วาดเส้นแนวนอน
+    cv2.line(frame, (0, line_y), (w, line_y), (255, 0, 0), 2)
+
+    # แสดงตัวนับ
+    cv2.putText(frame, f"IN: {in_count}", (20, 40),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+    cv2.putText(frame, f"OUT: {out_count}", (20, 80),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+
+    out.write(frame)
+
+cap.release()
+out.release()
+print("Finished!")
