@@ -2,162 +2,363 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ระบบตรวจจับกระเป๋าและนับจำนวน</title>
+<title>เว็บ 3 เกลอ | Pink Dark AI</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-* { font-family: 'Sarabun', sans-serif; font-weight: bold; box-sizing: border-box; }
-body { margin:0; background:#ffc0cb; }
-nav { background:#ff69b4; padding:10px; text-align:center; }
-nav button {
-    margin:5px; padding:10px 18px; border:none;
-    background:#ffe4e1; color:red; font-size:20px;
-    border-radius:10px; cursor:pointer;
+*{box-sizing:border-box;font-family:'Sarabun',sans-serif}
+body{
+  margin:0;
+  background:linear-gradient(135deg,#0b0b10,#1a0f1f,#2a1025);
+  color:#eee;
 }
-section { display:none; padding:20px; }
-section.active { display:block; }
-.card { background:white; padding:20px; border-radius:15px; margin-bottom:20px; }
-.center { text-align:center; }
-.count { font-size:26px; color:red; }
-video { width:100%; border-radius:10px; border:3px solid pink; }
-table { border-collapse: collapse; }
-th, td { padding:8px; text-align:center; }
+
+/* ===== NAV ===== */
+nav{
+  background:#0b0b10;
+  padding:18px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 10px 30px rgba(255,20,147,.35);
+}
+nav h1{color:#ff4fa3;margin:0}
+nav button{
+  background:none;border:none;
+  color:#ccc;margin-left:15px;
+  font-size:15px;cursor:pointer
+}
+nav button:hover{color:#ff4fa3}
+
+section{display:none}
+section.active{display:block}
+
+/* ===== HOME ===== */
+.hero{
+  height:90vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.hero-card{
+  background:rgba(0,0,0,.65);
+  padding:70px 90px;
+  border-radius:40px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(255,20,147,.4);
+}
+.hero-card h2{
+  font-size:56px;
+  margin:0;
+  color:#ff69b4;
+}
+.hero-card p{margin:20px 0 35px;color:#ddd}
+.btn-main{
+  background:linear-gradient(135deg,#ff4fa3,#ff1493);
+  border:none;
+  padding:16px 38px;
+  border-radius:40px;
+  color:#fff;
+  font-size:17px;
+  cursor:pointer;
+}
+
+/* ===== CONTENT ===== */
+.content{padding:60px}
+.card{
+  background:rgba(0,0,0,.65);
+  border-radius:35px;
+  padding:45px;
+  box-shadow:0 25px 60px rgba(255,20,147,.3);
+  text-align:center;
+}
+
+/* ===== CAMERA ===== */
+.camera-box{
+  display:flex;
+  justify-content:center;
+  margin:30px 0;
+}
+canvas.webcam{
+  width:420px;
+  height:420px;
+  border-radius:30px;
+  border:6px solid #ff4fa3;
+  box-shadow:0 0 40px rgba(255,20,147,.7);
+}
+
+/* ===== BUTTON ===== */
+.btn{
+  border:none;
+  padding:12px 30px;
+  border-radius:30px;
+  margin:6px;
+  font-size:15px;
+  cursor:pointer;
+}
+.btn-pink{background:#ff1493;color:white}
+.btn-gray{background:#444;color:#ddd}
+
+/* ===== STATUS ===== */
+.stat{color:#ff69b4;font-size:26px;font-weight:700}
+.pct{margin-left:8px;color:#ccc}
+.status{
+  margin-left:10px;
+  padding:4px 14px;
+  border-radius:20px;
+  font-size:13px;
+}
+.on{background:#ff1493}
+.off{background:#444}
+
+/* ===== CHART ===== */
+.chart-box{
+  max-width:420px;
+  margin:0 auto;
+}
+
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+}
+th,td{
+  padding:12px;
+  border-bottom:1px solid #333;
+}
+th{color:#ff69b4}
+
+footer{
+  text-align:center;
+  padding:25px;
+  color:#888;
+}
 </style>
 </head>
 
 <body>
 
 <nav>
-    <button onclick="showPage('home')">🏠 หน้าแรก</button>
-    <button onclick="showPage('detect')">🎥 ตรวจจับ</button>
-    <button onclick="showPage('stats')">📊 สถิติ</button>
-    <button onclick="showPage('data')">📁 ข้อมูล</button>
+  <h1>🖤💗 เว็บ 3 เกลอ</h1>
+  <div>
+    <button onclick="showPage('home')">หน้าหลัก</button>
+    <button onclick="showPage('detect')">ตรวจจับ</button>
+    <button onclick="showPage('stats')">สถิติ</button>
+    <button onclick="showPage('about')">ข้อมูล</button>
+  </div>
 </nav>
 
+<!-- HOME -->
 <section id="home" class="active">
-    <div class="card center">
-        <h1>ระบบตรวจจับกระเป๋าและนับจำนวนอัตโนมัติ</h1>
-        <p>Bag Type Detection & Counting (YOLO)</p>
-        <button onclick="showPage('detect')">👉 เข้าใช้งาน</button>
+  <div class="hero">
+    <div class="hero-card">
+      <h2>เว็บ 3 เกลอ</h2>
+      <p>AI ตรวจจับกระเป๋า<br>Backpack • Handbag • Suitcase</p>
+      <button class="btn-main" onclick="showPage('detect')">เริ่มใช้งาน</button>
     </div>
+  </div>
 </section>
 
+<!-- DETECT -->
 <section id="detect">
-    <div class="card">
-        <h2>🎥 กล้องตรวจจับ</h2>
-        <video id="camera" autoplay></video><br><br>
-        <button onclick="startCamera()">📷 เปิดกล้อง</button>
-    </div>
+<div class="content">
+<div class="card">
 
-    <div class="card">
-        <h3>📦 ผลการตรวจจับ (Real-time)</h3>
-        <p>🎒 Backpack: <span id="backpack" class="count">0</span></p>
-        <p>👜 Handbag: <span id="handbag" class="count">0</span></p>
-        <p>🧳 Suitcase: <span id="suitcase" class="count">0</span></p>
-        <p>📊 รวมทั้งหมด: <span id="total" class="count">0</span></p>
-    </div>
+<h2>📷 ตรวจจับกระเป๋า</h2>
+
+<button id="startBtn" class="btn btn-pink">เปิดกล้อง</button>
+<button id="stopBtn" class="btn btn-gray" style="display:none">ปิดกล้อง</button>
+
+<div class="camera-box">
+  <div id="webcam-container"></div>
+</div>
+
+<p>🎒 Backpack :
+ <span id="Backpack" class="stat">0</span>
+ <span id="Backpack_pct" class="pct">0%</span>
+ <span id="Backpack_status" class="status off">ไม่พบ</span>
+</p>
+
+<p>👜 Handbag :
+ <span id="Handbag" class="stat">0</span>
+ <span id="Handbag_pct" class="pct">0%</span>
+ <span id="Handbag_status" class="status off">ไม่พบ</span>
+</p>
+
+<p>🧳 Suitcase :
+ <span id="Suitcase" class="stat">0</span>
+ <span id="Suitcase_pct" class="pct">0%</span>
+ <span id="Suitcase_status" class="status off">ไม่พบ</span>
+</p>
+
+</div>
+</div>
 </section>
 
+<!-- STATS -->
 <section id="stats">
-    <div class="card">
-        <h2>📊 สถิติการตรวจจับ</h2>
-        <canvas id="chart"></canvas>
-    </div>
+<div class="content">
+<div class="card">
+<h2>📊 สถิติการตรวจจับ</h2>
+<div class="chart-box">
+  <canvas id="statsChart" height="220"></canvas>
+</div>
+</div>
+</div>
 </section>
 
-<section id="data">
-    <div class="card">
-        <h2>📁 ประวัติการตรวจจับ</h2>
-        <table border="1" width="100%">
-            <thead>
-                <tr>
-                    <th>ลำดับ</th>
-                    <th>Backpack</th>
-                    <th>Handbag</th>
-                    <th>Suitcase</th>
-                    <th>เวลา</th>
-                </tr>
-            </thead>
-            <tbody id="dataTable"></tbody>
-        </table>
-    </div>
+<!-- ABOUT -->
+<section id="about">
+<div class="content">
+<div class="card">
+<h2>📋 ข้อมูลระบบ</h2>
+<table>
+<thead>
+<tr><th>#</th><th>ประเภท</th><th>เวลา</th></tr>
+</thead>
+<tbody id="logTable"></tbody>
+</table>
+</div>
+</div>
 </section>
+
+<footer>© 2026 เว็บ 3 เกลอ</footer>
 
 <script>
-function showPage(id) {
-    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+const URL="./model/";
+let model,webcam,isRunning=false;
+let stats={Backpack:0,Handbag:0,Suitcase:0};
+let logs=[];
+let chart;
+let countTimer=null;
+
+// DOM
+const wc=document.getElementById("webcam-container");
+const logTable=document.getElementById("logTable");
+
+// navigation
+function showPage(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(id==="stats" && !chart) initChart();
 }
 
-function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => camera.srcObject = stream)
-        .catch(() => alert("ไม่สามารถเปิดกล้องได้"));
+// buttons
+startBtn.onclick=startCamera;
+stopBtn.onclick=stopCamera;
+
+async function startCamera(){
+  model=await tmImage.load(URL+"model.json",URL+"metadata.json");
+  webcam=new tmImage.Webcam(224,224,true);
+  await webcam.setup();
+  await webcam.play();
+
+  wc.innerHTML="";
+  webcam.canvas.className="webcam";
+  wc.appendChild(webcam.canvas);
+
+  isRunning=true;
+  startBtn.style.display="none";
+  stopBtn.style.display="inline-block";
+
+  requestAnimationFrame(updatePercent);
+  countTimer=setInterval(countDetect,3000);
 }
 
-let index = 1;
+function stopCamera(){
+  webcam.stop();
+  wc.innerHTML="";
+  isRunning=false;
+  clearInterval(countTimer);
 
-// ====== Chart ======
-const chart = new Chart(document.getElementById("chart"), {
-    type: "bar",
-    data: {
-        labels: ["backpack", "handbag", "suitcase"],
-        datasets: [{
-            label: "จำนวนที่ตรวจพบ",
-            data: [0, 0, 0],
-            backgroundColor: ["#ff9999", "#ff66b2", "#ff3399"]
-        }]
+  startBtn.style.display="inline-block";
+  stopBtn.style.display="none";
+
+  // 👉 ปิดกล้องแล้วไปหน้าสถิติทันที
+  showPage("stats");
+}
+
+async function updatePercent(){
+  if(!isRunning) return;
+  webcam.update();
+  const p=await model.predict(webcam.canvas);
+  p.forEach(r=>{
+    document.getElementById(r.className+"_pct").innerText=
+      (r.probability*100).toFixed(0)+"%";
+  });
+  requestAnimationFrame(updatePercent);
+}
+
+async function countDetect(){
+  if(!isRunning) return;
+  const p=await model.predict(webcam.canvas);
+
+  ["Backpack","Handbag","Suitcase"].forEach(c=>{
+    document.getElementById(c+"_status").className="status off";
+    document.getElementById(c+"_status").innerText="ไม่พบ";
+  });
+
+  p.forEach(r=>{
+    if(r.probability>0.8){
+      stats[r.className]++;
+      document.getElementById(r.className).innerText=stats[r.className];
+      document.getElementById(r.className+"_status").className="status on";
+      document.getElementById(r.className+"_status").innerText="ตรวจจับได้";
+      logs.push({type:r.className,time:new Date().toLocaleTimeString()});
+    }
+  });
+
+  updateLog();
+  updateChart();
+}
+
+function initChart(){
+  chart=new Chart(statsChart,{
+    type:"bar",
+    data:{
+      labels:["Backpack","Handbag","Suitcase"],
+      datasets:[{
+        data:[0,0,0],
+        backgroundColor:[
+          "#ff4fa3", // Backpack
+          "#9b6cff", // Handbag
+          "#4fc3ff"  // Suitcase
+        ],
+        borderRadius:14
+      }]
     },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
-        }
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true}},
+      responsive:true
     }
-});
-
-// ====== ดึงข้อมูลจาก YOLO Backend ======
-async function detectFromYOLO() {
-    try {
-        const res = await fetch("http://127.0.0.1:5000/detect");
-        const data = await res.json();
-
-        const backpack = data.backpack || 0;
-        const handbag = data.handbag || 0;
-        const suitcase = data.suitcase || 0;
-        const total = backpack + handbag + suitcase;
-
-        // แสดงผลหน้า detect
-        document.getElementById("backpack").innerText = backpack;
-        document.getElementById("handbag").innerText = handbag;
-        document.getElementById("suitcase").innerText = suitcase;
-        document.getElementById("total").innerText = total;
-
-        // อัปเดตกราฟ
-        chart.data.datasets[0].data = [backpack, handbag, suitcase];
-        chart.update();
-
-        // เพิ่มข้อมูลลงตาราง
-        if (total > 0) {
-            const row = dataTable.insertRow();
-            row.innerHTML = `
-                <td>${index++}</td>
-                <td>${backpack}</td>
-                <td>${handbag}</td>
-                <td>${suitcase}</td>
-                <td>${new Date().toLocaleTimeString()}</td>
-            `;
-        }
-
-    } catch (err) {
-        console.log("❌ Backend ยังไม่ทำงาน");
-    }
+  });
 }
 
-// เรียกทุก 2 วินาที
-setInterval(detectFromYOLO, 2000);
+function updateChart(){
+  if(!chart) return;
+  chart.data.datasets[0].data=[
+    stats.Backpack,stats.Handbag,stats.Suitcase
+  ];
+  chart.update();
+}
+
+function updateLog(){
+  logTable.innerHTML="";
+  logs.forEach((l,i)=>{
+    logTable.innerHTML+=`
+      <tr>
+        <td>${i+1}</td>
+        <td>${l.type}</td>
+        <td>${l.time}</td>
+      </tr>`;
+  });
+}
 </script>
 
 </body>
